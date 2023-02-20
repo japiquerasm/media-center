@@ -1,0 +1,78 @@
+version: "3.7"
+
+networks:
+  common:
+    external: true
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    ports:
+     - "8096:8096"
+    volumes:
+      - /c/Users/j/Documents/Media-Center/jellyfin/config:/config
+      - /c/Users/j/Documents/Media-Center/jellyfin/cache:/cache
+      - /c/Users/j/Documents/Media-Center/jellyfin/media:/media
+    restart: "unless-stopped"
+    networks:
+      - common
+
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    environment:
+      - PUID=197609
+      - PGID=197121
+      - TZ=Europe/Madrid
+      - USER=admin #optional
+      - PASS=admin #optional
+      # - WHITELIST=iplist #optional
+      # - PEERPORT=peerport #optional
+      # - "HOST_WHITELIST=dnsname list" #optional
+    volumes:
+      - /c/Users/j/Documents/Media-Center/transmission/config:/config
+      - /c/Users/j/Documents/Media-Center/transmission/downloads:/downloads
+      - /c/Users/j/Documents/Media-Center/transmission/watch:/watch
+    ports:
+      - 9091:9091
+      - 51413:51413
+      - 51413:51413/udp
+    restart: unless-stopped
+    networks:
+      - common
+  
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - PUID=197609
+      - PGID=197121
+      - TZ=Europe/Madrid
+      - AUTO_UPDATE=true #optional
+      - RUN_OPTS= #optional
+    volumes:
+      - /c/Users/j/Documents/Media-Center/jackett:/config
+      - /c/Users/j/Documents/Media-Center/jackett/blackhole:/downloads
+    ports:
+      - 9117:9117
+    restart: unless-stopped
+    networks:
+      - common
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=197609
+      - PGID=197121
+      - TZ=Europe/Madrid
+    volumes:
+      - /c/Users/j/Documents/Media-Center/sonarr/data:/config
+      - /c/Users/j/Documents/Media-Center/sonarr/tvseries:/tv #optional
+      - /c/Users/j/Documents/Media-Center/sonarr/downloads:/downloads #optional
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+    networks:
+      - common
