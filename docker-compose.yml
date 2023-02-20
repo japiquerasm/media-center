@@ -2,34 +2,49 @@ version: "3.7"
 
 networks:
   common:
-    external: true
+    external: true     
 
 services:
+  caddy:
+    image: caddy:latest
+    container_name: proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ${STORAGE}/config/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ${STORAGE}/config/caddy/site:/srv
+      - ${STORAGE}/data/caddy-data/data:/data
+      - ${STORAGE}/data/caddy-data/config:/config
+    networks:
+      - common
+
   jellyfin:
     image: jellyfin/jellyfin
     container_name: jellyfin
+    restart: "unless-stopped"
     ports:
      - "8096:8096"
     volumes:
-      - /c/Users/j/Documents/Media-Center/jellyfin/config:/config
-      - /c/Users/j/Documents/Media-Center/jellyfin/cache:/cache
-      - /c/Users/j/Documents/Media-Center/jellyfin/media:/media
-    restart: "unless-stopped"
+      - ${STORAGE}/config/jellyfin/config:/config
+      - ${STORAGE}/data/jellyfin-data/cache:/cache
+      - ${STORAGE}/data/media/movies:/movies
+      - ${STORAGE}/data/media/tv-shows:/tv-shows
     networks:
       - common
 
   transmission:
     image: lscr.io/linuxserver/transmission:latest
     container_name: transmission
+    restart: unless-stopped
     environment:
-      - PUID=197609
-      - PGID=197121
-      - TZ=Europe/Madrid
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
       - USER=admin #optional
       - PASS=admin #optional
-      # - WHITELIST=iplist #optional
-      # - PEERPORT=peerport #optional
-      # - "HOST_WHITELIST=dnsname list" #optional
     volumes:
       - /c/Users/j/Documents/Media-Center/transmission/config:/config
       - /c/Users/j/Documents/Media-Center/transmission/downloads:/downloads
@@ -38,7 +53,6 @@ services:
       - 9091:9091
       - 51413:51413
       - 51413:51413/udp
-    restart: unless-stopped
     networks:
       - common
   
